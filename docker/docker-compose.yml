@@ -1,0 +1,19 @@
+version: "2"
+
+services:
+  k8s:
+    container_name: k8s
+    image: gloryluo/k8s-client:1.31.0.0 
+    ports:
+      - 9093:9093 # alertmanager
+      - 9090:9090 # prometheus
+      - 3000:3000 # grafana
+      - 50750:50750 # linkerd dashboard
+      - 8080:8080 # 8080
+      - 55000:5000 # 5000 conductor
+    volumes:
+      - ../:/opt/k8s:cached
+      - ~/.ssh:/root/.ssh:delegated
+      - .bash_history:/root/.bash_history
+    stdin_open: true
+    tty: true

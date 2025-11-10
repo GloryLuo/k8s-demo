@@ -1,0 +1,71 @@
+FROM        ubuntu:latest
+# prepare
+ENV         DEBIAN_FRONTEND="noninteractive"
+RUN         apt-get update && apt-get upgrade -y && apt-get install -y locales python3 python3-pip curl wget unzip \
+              zip jq bash-completion uuid-runtime vim ssh iputils-ping sudo git screen cron bind9-host bind9-dnsutils ca-certificates gnupg \
+            && rm -rf /var/lib/apt/lists/* \
+            && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+ENV         LANG=en_US.utf8
+# Docker
+RUN         /usr/bin/install -m 0755 -d /etc/apt/keyrings && \
+	    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+            chmod a+r /etc/apt/keyrings/docker.gpg && \
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list && \
+            apt-get update && apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin --yes
+# AWS CLI v2
+RUN         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+            && unzip awscliv2.zip \
+            && ./aws/install \
+            && aws --version \
+            && rm -rf awscliv2.zip aws
+# terraform
+RUN         curl -Lo terraform.zip https://releases.hashicorp.com/terraform/1.12.2/terraform_1.12.2_linux_amd64.zip \
+            && unzip terraform.zip \
+            && mv ./terraform /usr/local/bin/ \
+            && rm terraform.zip
+# k8s related
+RUN         curl --verbose -Lo kubetail https://raw.githubusercontent.com/johanhaleby/kubetail/1.6.20/kubetail \
+            && chmod +x ./kubetail \
+            && mv ./kubetail /usr/local/bin/
+RUN         curl -Lo kustomize.tar.gz https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.7.0/kustomize_v5.7.0_linux_amd64.tar.gz \
+            && tar zxf kustomize.tar.gz \
+            && mv ./kustomize /usr/local/bin/ \
+            && rm kustomize.tar.gz
+RUN         curl -Lo kops https://github.com/kubernetes/kops/releases/download/v1.31.0/kops-linux-amd64 \
+            && chmod +x ./kops \
+            && mv ./kops /usr/local/bin/
+RUN         curl -Lo kubectl https://dl.k8s.io/release/v1.31.11/bin/linux/amd64/kubectl \
+            && chmod +x ./kubectl \
+            && mv ./kubectl /usr/local/bin/
+RUN         curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64 \
+            && chmod +x ./kubectl-argo-rollouts-linux-amd64 \
+            && mv ./kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+RUN         curl -Lo aws-iam-authenticator https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.7.4/aws-iam-authenticator_0.7.4_linux_amd64 \
+            && chmod +x ./aws-iam-authenticator \
+            && mv ./aws-iam-authenticator /usr/local/bin/
+RUN         curl -Lo get-helm-3.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && chmod +x ./get-helm-3.sh && ./get-helm-3.sh --version v3.18.4
+# alias
+RUN         echo "source <(kubectl completion bash);source /etc/bash_completion;alias k=kubectl;alias kt=kubetail;alias kz=kustomize;complete -F __start_kubectl k;" >> ~/.bashrc
+RUN         echo "complete -C '/usr/local/bin/aws_completer' aws" >> ~/.bashrc
+RUN         echo "source <(kubectl-argo-rollouts completion bash)" >> ~/.bashrc
+# step-cli https://smallstep.com/docs/step-cli/installation
+RUN         curl -Lo step-cli_0.28.7_amd64.deb  https://dl.smallstep.com/gh-release/cli/gh-release-header/v0.28.7/step-cli_0.28.7-1_amd64.deb \
+            && dpkg -i step-cli_0.28.7_amd64.deb \
+            && rm step-cli_0.28.7_amd64.deb
+
+# Set build argument for the license key
+ARG         BUOYANT_LICENSE
+
+# Set the license key as an environment variable
+ENV         BUOYANT_LICENSE=${BUOYANT_LICENSE}
+
+# Install Linkerd Enterprise (Static Download for version 2.16.1, linux-amd64)
+RUN         curl -Lo linkerd https://github.com/BuoyantIO/linkerd-buoyant/releases/download/enterprise-2.16.1/linkerd-enterprise-2.16.1-linux-amd64 \
+            && chmod +x linkerd \
+            && mv linkerd /usr/local/bin/
+
+# Set PATH to include Linkerd binaries
+ENV         PATH=/usr/local/bin:$PATH
+
+# work dir
+WORKDIR     /opt/k8s
