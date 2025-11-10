@@ -3,3 +3,11 @@ COPY --chmod=755 ./dependencies/kubectl-argo-rollouts-linux-amd64 /bin/kubectl-a
 
 ENTRYPOINT ["/bin/kubectl-argo-rollouts"]
 
+# docker build -f ./k8s-argo-rollouts.df -t gloryluo/k8s-argo-rollouts:1.0.0.1 ./
+# after successful build
+# docker image push gloryluo/k8s-argo-rollouts:1.0.0.1
+
+
+
+
+

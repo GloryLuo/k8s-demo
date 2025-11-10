@@ -26,7 +26,7 @@ docker login -u <username> -p <password>
 ```
 # k8s-client
 docker build -f ./k8s-client.df -t gloryluo/k8s-client:1.31.0.0 ./
-docker push intellibank/k8s-client:1.31.0.0
+docker push gloryluo/k8s-client:1.31.0.0
 ```
 
 ## Run
