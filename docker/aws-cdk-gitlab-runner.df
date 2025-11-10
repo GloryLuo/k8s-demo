@@ -1,0 +1,16 @@
+FROM --platform=linux/amd64 amd64/node:22.2.0-slim
+RUN npm install -g aws-cdk
+RUN apt-get update \
+    && apt-get install -y bash \
+    && apt-get install -y awscli \
+    && apt-get install -y git \
+    && apt-get install -y curl \
+    && apt-get install -y dpkg
+RUN	git config --global --add safe.directory "*"
+RUN curl -LJO https://gitlab-runner-downloads.s3.amazonaws.com/v17.0.0/deb/gitlab-runner_amd64.deb \
+        && dpkg -i gitlab-runner_amd64.deb \
+        && rm gitlab-runner_amd64.deb
+
+# docker build -f ./aws-cdk-gitlab-runner.df -t intellibank/aws-cdk-gitlab-runner:1.0.0.1 ./
+# after successful build
+# docker image push intellibank/aws-cdk-gitlab-runner:1.0.0.1

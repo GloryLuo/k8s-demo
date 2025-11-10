@@ -1,0 +1,5 @@
+FROM gcr.io/distroless/static-debian11
+COPY --chmod=755 ./dependencies/kubectl-argo-rollouts-linux-amd64 /bin/kubectl-argo-rollouts
+
+ENTRYPOINT ["/bin/kubectl-argo-rollouts"]
+
