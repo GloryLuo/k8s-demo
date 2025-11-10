@@ -22,16 +22,16 @@ The Docker image installs:
 ## Login
 docker login -u <username> -p <password>
 
-## Run
-```
-# configure docker-compose.yml if you have anything special on your local
-docker-compose up -d
-docker exec -it k8s bash
-```
-
 ## Build
 ```
 # k8s-client
 docker build -f ./k8s-client.df -t gloryluo/k8s-client:1.31.0.0 ./
 docker push intellibank/k8s-client:1.31.0.0
+```
+
+## Run
+```
+# configure docker-compose.yml if you have anything special on your local
+docker-compose up -d
+docker exec -it k8s bash
 ```
